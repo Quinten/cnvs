@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html>
+<body style="margin:0,0,0,0">
+<canvas id="0"></canvas>
+<script>
+var d=document;
+var c=d.getElementById("0");
+var w=c.parentNode;
+if ((c.width!=w.clientWidth)||(c.height!=w.clientHeight)) {
+	c.width=w.clientWidth;
+	c.height=w.clientHeight;}
+alert(d.width + ' ' + d.height);
+alert(c.width + ' ' + c.height);
+var cxt=c.getContext("2d");
+cxt.moveTo(10,10);
+cxt.lineTo(150,50);
+cxt.lineTo(10,50);
+cxt.stroke();
+
+</script>
+
+</body>
+</html>
