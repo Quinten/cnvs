@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+  <meta name="HandheldFriendly" content="True" />
+  <title>tentacles</title>
+</head>
+<body>
+<canvas id="c">Sorry, your browser does not support canvas.</canvas>
+<script>
+    var experiment = {};
+    experiment.setup = function () {
+
+      // check if the browser has any idea if we can do the setup yet
+      if (!window.innerWidth) {
+        setTimeout(experiment.setup, 500);
+        return;
+      }
+
+      // fix the browsers frame refresh thing
+      if (!window.requestAnimationFrame) {
+      window.requestAnimationFrame = (window.webkitRequestAnimationFrame ||
+                                      window.mozRequestAnimationFrame ||
+                                      window.msRequestAnimationFrame ||
+                                      window.oRequestAnimationFrame ||
+                                      function (callback) {
+                                        return window.setTimeout(callback, 17);
+                                      });
+      }
+
+      // keep track of timing variables
+      var start_time = new Date().getTime(), time = getTimer(), elapsed = 17;
+      function getTimer () {
+        return (new Date().getTime() - start_time);
+      }
+
+      // grab canvas and drawing context
+      var canvas = document.getElementById('c'), context = canvas.getContext('2d');
+      if(!context){
+        return;
+      }
+
+      // some css tweaks
+      document.body.style.background = "#234140";
+      document.body.style.margin = 0;
+      document.body.style.overflow = "hidden";
+
+      // handle window resizing
+      var center = {x: 0, y: 0};
+      function onR () {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        center.x = 0;
+        center.y = 0;
+        context.translate(center.x, center.y);
+      }
+      window.addEventListener('resize', onR, false); // on event
+      onR(); // and on setup
+
+            // init
+            // inspiration: fresh flash, lifaros, bezier curve creatures, page 183
+            var tentacle = function ( segments, radius, thick, comp, xpos, ypos, angle, da, strokewidth, strokecolor,  fillcolor ) {
+              this.x = []; this.y = []; this.a = []; this.mx = []; this.my = [];
+              this.rx = []; this.ry = []; this.rmx = []; this.rmy = [];
+              this.lx = []; this.ly = []; this.lmx = []; this.lmy = [];
+              this.da = da;
+              this.r = [];
+              this.frec = [];
+              this.thick = [];
+              this.segments = segments;
+              this.strokewidth = strokewidth;
+              this.strokecolor = strokecolor;
+              this.fillcolor = fillcolor;
+              this.thick[0] = thick;
+              this.r[0] = radius;
+              this.a[0] = angle;
+              this.x[0] = xpos;
+              this.y[0] = ypos;
+              this.f = 1;
+              for ( var i = 1; i <= this.segments; i++ ) {
+                this.frec[i] = 3 * ( Math.random() - 0.5 );
+                this.r[i] = this.r[i-1]*comp;
+                this.thick[i] = this.thick[i-1]*comp;
+              }
+            }
+
+            var dtr = Math.PI/180;
+
+            tentacle.prototype.modulateTentacles = function ( t ) {
+              var i = 1;
+              this.a[i] = this.a[i-1];
+              this.x[i] = this.x[i-1]+this.r[i]*Math.cos(this.a[i]*dtr);
+              this.y[i] = this.y[i-1]+this.r[i]*Math.sin(this.a[i]*dtr);
+              for ( var i = 2; i <= this.segments; i++ ) {
+                this.a[i] = this.a[i-1]+this.da*Math.sin(this.frec[i]*t*dtr);
+                this.x[i] = this.x[i-1]+this.r[i]*Math.cos(this.a[i]*dtr);
+                this.y[i] = this.y[i-1]+this.r[i]*Math.sin(this.a[i]*dtr);
+              }
+              this.rx[0] = this.x[0]-this.thick[0]*Math.sin(this.a[1]*dtr);
+              this.ry[0] = this.y[0]+this.thick[0]*Math.cos(this.a[1]*dtr);
+              this.lx[0] = this.x[0]+this.thick[0]*Math.sin(this.a[1]*dtr);
+              this.ly[0] = this.y[0]-this.thick[0]*Math.cos(this.a[1]*dtr);
+              for ( var i = 1; i < this.segments; i++ ) {
+                this.rx[i] = this.x[i] - (this.thick[i] / Math.cos( 0.5 * ( this.a[i+1] - this.a[i] ) * dtr ) ) * Math.sin( 0.5 * ( this.a[i+1] + this.a[i] ) * dtr);
+                this.ry[i] = this.y[i] + (this.thick[i] / Math.cos( 0.5 * ( this.a[i+1] - this.a[i] ) * dtr ) ) * Math.cos( 0.5 * ( this.a[i+1] + this.a[i] ) * dtr);
+                this.lx[i] = this.x[i] + (this.thick[i] / Math.cos( 0.5 * ( this.a[i+1] - this.a[i] ) * dtr ) ) * Math.sin( 0.5 * ( this.a[i+1] + this.a[i] ) * dtr);
+          this.ly[i] = this.y[i] - (this.thick[i] / Math.cos( 0.5 * ( this.a[i+1] - this.a[i] ) * dtr ) ) * Math.cos( 0.5 * ( this.a[i+1] + this.a[i] ) * dtr);
+              }
+              this.rx[this.segments] = this.x[i]-this.thick[i]*Math.sin(this.a[i]*dtr);
+              this.ry[this.segments] = this.y[i]+this.thick[i]*Math.cos(this.a[i]*dtr);
+              this.lx[this.segments] = this.x[i]+this.thick[i]*Math.sin(this.a[i]*dtr);
+              this.ly[this.segments] = this.y[i]-this.thick[i]*Math.cos(this.a[i]*dtr);
+            }
+
+            tentacle.prototype.drawLines = function () {
+              context.save();
+              context.strokeStyle = this.strokecolor;
+              context.lineWidth = this.strokewidth;
+              context.fillStyle = this.fillcolor;
+              context.beginPath();
+              context.moveTo(this.lx[0], this.ly[0]);
+              context.lineTo(this.rx[0], this.rx[0]);
+              for ( var i = 1; i <= this.segments-1; i++) {
+                context.lineTo(this.rx[i],this.ry[i]);
+              }
+              context.lineTo(this.lx[this.segments-1], this.ly[this.segments-1]);
+              for ( var i = (this.segments-2); i >= 1; i--) {
+                context.lineTo(this.lx[i],this.ly[i]);
+              }
+              context.lineTo(this.lx[0], this.ly[0]);
+              context.moveTo(this.x[0],this.y[0]);
+              for ( var i = 1; i <= this.segments-1; i++) {
+                context.lineTo(this.x[i],this.y[i]);
+              }
+              context.closePath();
+              context.fill();
+              context.stroke();
+              context.restore();
+            }
+
+            var tentacle1 = new tentacle(30, 200, 20, .9, canvas.width*.5, canvas.height, -90, 180, 0.5, '#ffe7ee', 'rgba(23,41,40,1)');
+            var speed = 2, t = 1;
+
+            // then start animation
+            (function onF (){
+                window.requestAnimationFrame(onF, canvas);
+                elapsed = getTimer() - time;
+                time = getTimer();
+
+                // animate
+                tentacle1.modulateTentacles(speed*t++);
+                tentacle1.drawLines();
+
+            }());// end animation init
+
+
+    };// end setup closure
+
+    // if this html document is ready we can begin thinking of the experiment setup
+    if(document.readyState === 'complete'){
+      experiment.setup();
+    } else {
+      window.onload = function (){
+        experiment.setup();
+      }
+    }
+</script>
+</body>
+</html>
