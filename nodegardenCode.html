@@ -1,0 +1,88 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+<canvas id="0"></canvas>
+<script>
+// a port by @qubecity from a chapter in one of @bit101 early works about Flash:'Foundation Actionscript:Making things move'
+// read dom
+var d=document,w=window,b=d.body,c=d.getElementById("0"),t=c.getContext("2d");
+// set style to go fullbrowser
+b.style.margin = 0;
+b.style.overflow = "hidden";
+c.width=w.innerWidth;
+c.height=w.innerHeight;
+
+//focallength and vanishing point
+var fl = 400;
+var vpX = c.width / 2;
+var vpY = c.height / 2;
+
+// point objects
+var p = new Array();
+var numPoints = 50;
+
+// store a path
+for (var i = 0; i<numPoints; i++) {
+    p[i] = new Object();
+    p[i].x = Math.random() * 400 - 200;
+    p[i].y = Math.random() * 400 - 200;
+    p[i].z = Math.random() * 400 - 200;
+}
+
+
+//store mouse position
+
+var mX = 0;
+var mY = 0;
+
+c.addEventListener('mousemove', onM, false);
+
+function onM(e){
+    mX = e.clientX;
+    mY = e.clientY;
+}
+
+// create an interval to render canvas with 3d to 2d coordinates
+
+setInterval(onF, 40);
+
+function onF() {
+
+
+    var angleY = (mX - vpX) * .001;
+    var cosY = Math.cos(angleY);
+    var sinY = Math.sin(angleY);
+
+    var angleX = (mY - vpY) * .001;
+    var cosX = Math.cos(angleX);
+    var sinX = Math.sin(angleX);
+
+    for (var i=0;i<numPoints;i++) {
+
+        var x1 = p[i].x * cosY - p[i].z * sinY;
+        var z1 = p[i].z * cosY + p[i].x * sinY;
+
+        var y1 = p[i].y * cosX - z1 * sinX;
+        var z2 = z1 * cosX + p[i].y * sinX;
+
+        p[i].x = x1;
+        p[i].y = y1;
+        p[i].z = z2;
+
+        var scale = fl / (fl + p[i].z);
+        p[i]._x = vpX + p[i].x * scale;
+        p[i]._y = vpY + p[i].y * scale;
+    }
+
+    t.clearRect(0,0,c.width,c.height);
+    t.strokeStyle='rgb(66,255,00)';
+    t.beginPath();
+    t.moveTo(p[0]._x, p[0]._y);
+    for (var i=1;i<numPoints;i++) {
+        t.lineTo(p[i]._x, p[i]._y);
+    }
+    t.stroke();
+}
+</script>
+</body>
+</html>
