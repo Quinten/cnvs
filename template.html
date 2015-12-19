@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+  <meta name="HandheldFriendly" content="True" />
+  <title>template</title>
+</head>
+<body>
+<canvas id="c">Sorry, your browser does not support canvas.</canvas>
+<script>
+    var experiment = {};
+    experiment.setup = function () {
+
+      // check if the browser has any idea if we can do the setup yet
+      if (!window.innerWidth) {
+        setTimeout(experiment.setup, 500);
+        return;
+      }
+
+      // fix the browsers frame refresh thing
+      if (!window.requestAnimationFrame) {
+      window.requestAnimationFrame = (window.webkitRequestAnimationFrame ||
+                                      window.mozRequestAnimationFrame ||
+                                      window.msRequestAnimationFrame ||
+                                      window.oRequestAnimationFrame ||
+                                      function (callback) {
+                                        return window.setTimeout(callback, 17);
+                                      });
+      }
+
+      // keep track of timing variables
+      var start_time = new Date().getTime(), time = getTimer(), elapsed = 17;
+      function getTimer () {
+        return (new Date().getTime() - start_time);
+      }
+
+      // grab canvas and drawing context
+      var canvas = document.getElementById('c'), context = canvas.getContext('2d');
+      if(!context){
+        return;
+      }
+
+      // some css tweaks
+      document.body.style.background = "#ffffff";
+      document.body.style.margin = 0;
+      document.body.style.overflow = "hidden";
+
+      // handle window resizing
+      var center = {x: 0, y: 0};
+      function onR () {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        center.x = 0;
+        center.y = 0;
+        context.translate(center.x, center.y);
+      }
+      window.addEventListener('resize', onR, false); // on event
+      onR(); // and on setup
+
+            // init
+            //...
+
+            // then start animation
+            (function onF (){
+                window.requestAnimationFrame(onF, canvas);
+                elapsed = getTimer() - time;
+                time = getTimer();
+
+                // animate
+                //...
+
+            }());// end animation init
+
+
+    };// end setup closure
+
+    // if this html document is ready we can begin thinking of the experiment setup
+    if(document.readyState === 'complete'){
+      experiment.setup();
+    } else {
+      window.onload = function (){
+        experiment.setup();
+      }
+    }
+</script>
+</body>
+</html>
