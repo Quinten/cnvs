@@ -1,0 +1,9 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+<canvas id="c"></canvas>
+<script>
+a=document,c=window,d=a.body,f=a.getElementById("c"),g=f.getContext("2d");d.style.margin=0;d.style.overflow="hidden";f.width=c.innerWidth;f.height=c.innerHeight;for(var h=f.width/2,i=f.height/2,m=[],n=0,o=0,p=Lz=0;p<240;p++){m[p]={};a=Math.round(Math.random())?40:-40;r=Math.random()*3;if(r>2)n=n+a>160||n+a<-160?-n/2:n+a;if(r<1)o=o+a>160||o+a<-160?-o/2:o+a;if(r<2&&r>1)Lz=Lz>160||Lz<-160?-Lz/2:Lz+a;m[p].x=n;m[p].y=o;m[p].a=Lz}var q=0,s=0;f.addEventListener("mousemove",function(e){q=e.clientX;s=e.clientY},false);setInterval(function(){var e=(q-h)*.001,t=Math.cos(e);e=Math.sin(e);var j=(s-i)*.001,u=Math.cos(j);j=Math.sin(j);for(var b=0;b<240;b++){var k=m[b].a*t+m[b].x*e,l=m[b].y*u-k*j;k=k*u+m[b].y*j;m[b].x=m[b].x*t-m[b].a*e;m[b].y=l;m[b].a=k;l=400/(400+m[b].a);m[b].b=h+m[b].x*l;m[b].c=i+m[b].y*l}g.clearRect(0,0,f.width,f.height);g.beginPath();g.moveTo(m[0].b,m[0].c);for(b=1;b<240;b++)m[b].a<400&&g.lineTo(m[b].b,m[b].c);g.stroke()},40)
+</script>
+</body>
+</html>
